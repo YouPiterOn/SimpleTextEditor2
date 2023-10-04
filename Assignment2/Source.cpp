@@ -8,13 +8,128 @@ public:
 };
 
 
+class Saves {
+private:
+	node* saves[7];
+	const int center = 3;
+
+	node* GenerateSave(node* head) {
+		node* newHead = (struct node*)malloc(sizeof(struct node));
+		newHead->symbol = head->symbol;
+		newHead->next = NULL;
+		node* pointer = head->next;
+		node* newPointer = newHead;
+		while (pointer != NULL) {
+			struct node* newnode = (struct node*)malloc(sizeof(struct node));
+			newnode->symbol = pointer->symbol;
+			newnode->next = NULL;
+			newPointer->next = newnode;
+			pointer = pointer->next;
+			newPointer = newPointer->next;
+		}
+		return newHead;
+	}
+
+	void DeleteSave(node* head) {
+		if (head == NULL) return;
+		node* pointer = head;
+		node* pointer2 = head->next;
+		while (pointer2 != NULL) {
+			free(pointer);
+			pointer = pointer2;
+			pointer2 = pointer2->next;
+		}
+		free(pointer);
+	}
+public:
+	void Save(node* headToSave) {
+		node* save = GenerateSave(headToSave);
+		if (saves[center] == NULL) {
+			saves[center] = save;
+		}
+		else {
+			free(saves[0]);
+			for (int i = 0; i < center; i++) {
+				saves[i] = saves[i + 1];
+			}
+			saves[center] = save;
+		}
+	}
+	node* Back() {
+		if (saves[center - 1] == NULL) {
+			return NULL;
+		}
+		else {
+			DeleteSave(saves[6]);
+			for (int i = 6; i > 0; i--) {
+				saves[i] = saves[i - 1];
+			}
+			saves[0] = NULL;
+			return saves[center];
+		}
+	}
+	node* Forward() {
+		if (saves[center + 1] == NULL) {
+			return NULL;
+		}
+		else {
+			DeleteSave(saves[0]);
+			for (int i = 0; i < 6; i++) {
+				saves[i] = saves[i + 1];
+			}
+			saves[6] = NULL;
+			return saves[center];
+		}
+	}
+};
+
+
 class LinkedString {
 private:
 	node* head;
+	Saves saves;
+
+	void Save() {
+		this->saves.Save(this->head);
+	}
+	void LoadSave(node* save) {
+		this->head->symbol = save->symbol;
+		this->head->next = NULL;
+		node* savePointer = save->next;
+		node* pointer = head;
+		while (savePointer != NULL) {
+			if (pointer->next == NULL) {
+				struct node* newnode = (struct node*)malloc(sizeof(struct node));
+				newnode->symbol = savePointer->symbol;
+				newnode->next = NULL;
+				pointer->next = newnode;
+			}
+			else {
+				pointer->next->symbol = savePointer->symbol;
+			}
+			savePointer = savePointer->next;
+			pointer = pointer->next;
+		}
+		
+		if (pointer->next != NULL)
+		{
+			node* pointer2 = pointer->next;
+			pointer->next = NULL;
+			pointer = pointer2;
+			pointer2 = pointer->next;
+			while (pointer2 != NULL) {
+				free(pointer);
+				pointer = pointer->next;
+				pointer2 = pointer2->next;
+			}
+			free(pointer);
+		}
+	}
 public:
 	LinkedString() {
 		this->head = (struct node*)malloc(sizeof(struct node));
 		this->head->next = NULL;
+		Save();
 	}
 
 
@@ -38,6 +153,7 @@ public:
 			pointer = pointer->next;
 			i++;
 		}
+		Save();
 	}
 
 
@@ -52,6 +168,7 @@ public:
 		newnode->next = NULL;
 		pointer->next = newnode;
 		printf("New line is started\n");
+		Save();
 	}
 
 
@@ -95,6 +212,7 @@ public:
 			pointer = pointer->next;
 		}
 		fclose(myFile);
+		Save();
 	}
 
 
@@ -145,6 +263,7 @@ public:
 			i++;
 		}
 		pointer->next = tail;
+		Save();
 	}
 
 
@@ -227,6 +346,24 @@ public:
 			pointer->next = newnode;
 		}
 		tail->next = pointer->next;
+		Save();
+	}
+
+	void Undo() {
+		node* save = saves.Back();
+		if (save == NULL) {
+			cout << "no such save:(";
+			return;
+		}
+		LoadSave(save);
+	}
+	void Redo() {
+		node* save = saves.Forward();
+		if (save == NULL) {
+			cout << "no such save:(\n";
+			return;
+		}
+		LoadSave(save);
 	}
 };
 
@@ -261,6 +398,12 @@ int main() {
 			break;
 		case 8:
 			text.Delete();
+			break;
+		case 9:
+			text.Undo();
+			break;
+		case 10:
+			text.Redo();
 			break;
 		default:
 			break;
