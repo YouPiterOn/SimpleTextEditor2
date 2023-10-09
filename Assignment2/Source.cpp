@@ -88,6 +88,7 @@ class LinkedString {
 private:
 	node* head;
 	Saves saves;
+	string buffer;
 
 	void Save() {
 		this->saves.Save(this->head);
@@ -365,6 +366,132 @@ public:
 		}
 		LoadSave(save);
 	}
+	void Cut() {
+		int line;
+		int sym;
+		int num;
+		this->buffer = "";
+		cout << "Choose line, index and number of symbols:";
+		cin >> line >> sym >> num;
+		struct node* pointer = this->head;
+
+		while (line > 0 || sym > 0) {
+			if (pointer == NULL) {
+				cout << "no such symbol";
+				break;
+			}
+			if (pointer->symbol == '\n') {
+				line--;
+			}
+			if (line == 0) {
+				sym--;
+			}
+			pointer = pointer->next;
+		}
+		if (pointer == NULL) {
+			return;
+		}
+		node* tail = pointer;
+		while (num > 0) {
+			num--;
+			pointer = pointer->next;
+			if (pointer == NULL) {
+				cout << "no such symbol";
+				buffer = "";
+				break;
+			}
+			
+			this->buffer = this->buffer + pointer->symbol;
+			
+			
+		}
+		if (pointer == NULL) {
+			return;
+		}
+		if (pointer->next == NULL) {
+			struct node* newnode = (struct node*)malloc(sizeof(struct node));
+			newnode->symbol = NULL;
+			newnode->next = NULL;
+			pointer->next = newnode;
+		}
+		tail->next = pointer->next;
+		Save();
+	}
+	void Copy() {
+		int line = 0;
+		int sym;
+		int num;
+		this->buffer = "";
+		cout << "Choose line, index and number of symbols:";
+		cin >> line >> sym >> num;
+		struct node* pointer = this->head->next;
+
+		while (line > 0 || sym > 0) {
+			if (pointer == NULL) {
+				cout << "no such symbol";
+				break;
+			}
+			if (pointer->symbol == '\n') {
+				line--;
+			}
+			if (line == 0) {
+				sym--;
+			}
+			pointer = pointer->next;
+		}
+		if (pointer == NULL) {
+			return;
+		}
+		while (num > 0) {
+			if (pointer == NULL) {
+				cout << "no such symbol";
+				buffer = "";
+				break;
+			}
+			num--;
+			this->buffer += pointer->symbol;
+			pointer = pointer->next;
+		}
+	}
+
+	void Paste() {
+		int line;
+		int sym;
+		int num;
+		cout << "Choose line and index:";
+		cin >> line >> sym;
+		struct node* pointer = this->head;
+		
+		while (line > 0 || sym > 0) {
+			if (pointer == NULL) {
+				cout << "no such symbol";
+				break;
+			}
+			if (pointer->symbol == '\n') {
+				line--;
+			}
+			if (line == 0) {
+				sym--;
+			}
+			pointer = pointer->next;
+		}
+		if (pointer == NULL) {
+			return;
+			cout << "-";
+		}
+		node* tail = pointer->next;
+		int i = 0;
+		while (this->buffer[i] != '\0') {
+			struct node* newnode = (struct node*)malloc(sizeof(struct node));
+			newnode->symbol = this->buffer[i];
+			newnode->next = NULL;
+			pointer->next = newnode;
+			pointer = pointer->next;
+			i++;
+		}
+		pointer->next = tail;
+		Save();
+	}
 };
 
 int main() {
@@ -404,6 +531,15 @@ int main() {
 			break;
 		case 10:
 			text.Redo();
+			break;
+		case 11:
+			text.Cut();
+			break;
+		case 12:
+			text.Copy();
+			break;
+		case 13:
+			text.Paste();
 			break;
 		default:
 			break;
